@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+A simple example of using MIClusterRegress with clustering
+and regression classes from scikits-learn
+"""
 import numpy as np
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
@@ -24,6 +28,11 @@ class KMeansClusterer(KMeans, Clusterer):
         return Clusterer.normalize(indicators)
 
 def regress():
+    """
+    Implements the function to return a new RegressionModel with
+    appropriate parameters. Note that the regression classes in
+    scikits-learn already conform to the approprate interface.
+    """
     param_values = {
         'C': [10.0**i for i in (1, 2, 3, 4)],
         'nu': [0.2, 0.4, 0.4, 0.6],
@@ -37,7 +46,7 @@ def regress():
 def mse(y_hat, y):
     return np.average(np.square(y_hat - y))
 
-def main():
+if __name__ == '__main__':
     exset = loadmat('thrombin.mat', struct_as_record=False)['thrombin']
 
     # Construct bags
@@ -51,10 +60,8 @@ def main():
         values.append(float(exset[indices, -1][0, 0]))
     y = np.array(values)
 
+    # Fit bags, predict labels, and compute simple MSE
     mcr = MIClusterRegress(KMeansClusterer(k=3), regress)
     mcr.fit(bags, y)
     y_hat = mcr.predict(bags)
     print 'MSE: %f' % mse(y_hat, y)
-
-if __name__ == '__main__':
-    main()
