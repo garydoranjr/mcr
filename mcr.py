@@ -52,7 +52,9 @@ class MIClusterRegress(object):
 
     def _select(self, bags, y):
         """
-        Select a cluster/model index to use for predicting new bags
+        Select the cluster/model index to use for predicting new bags that
+        minimizes training error.
+
         (Override this method to implement different selection criteria.)
 
         @param bags : sequence of array-like bags, each with 
@@ -60,11 +62,12 @@ class MIClusterRegress(object):
         @param y : bag labels, array-like, shape [n_bags]
         @return : index of cluster/model to use for prediction
         """
-        exemplars_models = zip(_exemplars(bags), self.regression_models)
+        exemplars_models = zip(self._exemplars(bags), self.regression_models)
         predictions = [model.predict(ex_set)
                        for ex_set, model in exemplars_models]
-        rmses = [rmse(p, y) for p in predictions]
-        return rmses.index(min(rmses))
+        mses = [np.average(np.square(p - y)) for p in predictions]
+
+        return mses.index(min(mses))
 
     def fit(self, bags, y):
         """
@@ -92,10 +95,10 @@ class MIClusterRegress(object):
             self._status_msg(fstr % i)
             model = self.regress()
             model.fit(ex_set, y)
-            regression_models.append(model)
+            self.regression_models.append(model)
 
         self._status_msg('Selecting predictor...')
-        self.selected_index = _select(bags, y)
+        self.selected_index = self._select(bags, y)
 
         return self
 
@@ -109,7 +112,7 @@ class MIClusterRegress(object):
         """
         bags = map(np.asarray, bags)
         exemplars, model = zip(
-            _exemplars(bags), self.regression_models)[self.selected_index]
+            self._exemplars(bags), self.regression_models)[self.selected_index]
         return model.predict(exemplars)
 
 class Clusterer(object):
