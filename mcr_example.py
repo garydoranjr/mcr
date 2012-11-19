@@ -7,7 +7,7 @@ import numpy as np
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 from sklearn.svm import NuSVR
-from sklearn.metrics import mean_square_error
+from sklearn.metrics import r2_score
 from sklearn.grid_search import GridSearchCV
 
 from mcr import MIClusterRegress, Clusterer, RegressionModel
@@ -38,7 +38,7 @@ def regress():
         'nu': [0.2, 0.4, 0.4, 0.6],
         'kernel': ['linear'],
     }
-    nu_svr = NuSVR(scale_C=True)
+    nu_svr = NuSVR()
     grid_nu_svr = GridSearchCV(nu_svr, param_values,
         loss_func=mse, cv=5)
     return grid_nu_svr
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     y = np.array(values)
 
     # Fit bags, predict labels, and compute simple MSE
-    mcr = MIClusterRegress(KMeansClusterer(k=3), regress)
+    mcr = MIClusterRegress(KMeansClusterer(n_clusters=3), regress)
     mcr.fit(bags, y)
     y_hat = mcr.predict(bags)
-    print 'MSE: %f' % mse(y_hat, y)
+    print 'R^2: %f' % r2_score(y, y_hat)
