@@ -40,11 +40,8 @@ def regress():
     }
     nu_svr = NuSVR()
     grid_nu_svr = GridSearchCV(nu_svr, param_values,
-        loss_func=mse, cv=5)
+        loss_func=r2_score, cv=5)
     return grid_nu_svr
-
-def mse(y_hat, y):
-    return np.average(np.square(y_hat - y))
 
 if __name__ == '__main__':
     exset = loadmat('thrombin.mat', struct_as_record=False)['thrombin']
